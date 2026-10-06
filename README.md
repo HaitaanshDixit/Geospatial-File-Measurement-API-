@@ -2,32 +2,6 @@
 
 A FastAPI service that accepts a zipped Shapefile or a KML file, extracts every feature, and returns area and length measurements calculated in a projected coordinate system.
 
-## Setup
-
-Requires Python 3.11+.
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload
-```
-
-The API runs at `http://localhost:8000`. Interactive docs are at `http://localhost:8000/docs`.
-
-Run the tests:
-
-```bash
-pytest
-```
-
-Configuration (environment variables):
-
-| Variable | Default | Purpose |
-|---|---|---|
-| `DATABASE_URL` | `sqlite:///./geo.db` | SQLAlchemy database URL |
-| `MAX_UPLOAD_MB` | `50` | Maximum upload size |
-
 ## API
 
 ### Upload a file
@@ -165,13 +139,3 @@ For each feature the geometry is converted to WGS84, a UTM zone is chosen from i
 - KML folders show up as separate layers, and a reader that only opens the first layer silently drops data.
 - KML geometries carry Z values; area and length are calculated in 2D and ignore elevation.
 - Choosing the CRS is the core of the problem. Degrees are not metres, and one degree of longitude shrinks with latitude.
-
-## Future Scope
-
-- Background processing with a task queue for very large files, using the existing `PROCESSING` status for polling.
-- PostGIS storage for spatial queries (features inside a bounding box, intersections).
-- Geodesic measurements with `pyproj.Geod` as a cross-check or alternative mode.
-- Handling of geometries that cross the antimeridian or span several UTM zones.
-- Support for GeoJSON, GeoPackage and KMZ.
-- Authentication, upload quotas, and file deletion endpoints.
-- Dockerfile and CI pipeline running the tests.
