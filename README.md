@@ -2,6 +2,112 @@
 
 A FastAPI service that accepts a zipped Shapefile or a KML file, extracts every feature, and returns area and length measurements calculated in a projected coordinate system.
 
+## How to Use
+
+### 1. Install the prerequisites
+
+- Python 3.11 or newer ([python.org](https://www.python.org/downloads/)). On Windows, tick "Add Python to PATH" during install.
+- Git.
+
+### 2. Get the project
+
+```bash
+git clone https://github.com/HaitaanshDixit/Geospatial-File-Measurement-API-.git
+cd Geospatial-File-Measurement-API
+```
+
+### 3. Create a virtual environment
+
+macOS / Linux:
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+Windows (PowerShell):
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+```
+
+### 4. Install the dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 5. Start the server
+
+```bash
+uvicorn app.main:app --reload
+```
+
+The first run creates a `geo.db` file (the SQLite database) in the project folder. The server is ready when you see `Uvicorn running on http://127.0.0.1:8000`.
+
+### 6. Prepare a file
+
+- **KML** (`.kml`), for example an export from Google Earth.
+- **Shapefile** as a `.zip` containing the `.shp`, `.shx`, `.dbf` and `.prj` files together.
+
+The file must have a coordinate system. Files without one are rejected. 
+
+You can use sample.kml file present here.
+
+### 7. Upload the file
+
+**Using the browser (easiest)**
+
+1. Open `http://localhost:8000/docs`.
+2. Click **POST /api/files/**, then **Try it out**.
+3. Choose your `.kml` or `.zip` and click **Execute**.
+4. Copy the `id` from the response body.
+
+**Using the command line**
+
+```bash
+curl -F "file=@survey.kml" http://localhost:8000/api/files/
+```
+
+A successful upload returns `201` and `"status": "COMPLETED"`.
+
+### 8. Read the results
+
+Replace `<id>` with the id from the upload response:
+
+1. File information: `http://localhost:8000/api/files/<id>/`
+2. Features: `http://localhost:8000/api/files/<id>/features/`
+3. Measurements: `http://localhost:8000/api/files/<id>/measurements/`
+
+### 9. Understand the measurements
+
+- `area_sq_m`: area in square metres (polygons).
+- `length_m`: length in metres (lines).
+- `projected_crs`: the UTM zone used for the calculation.
+- Points return no measurement but are marked `supported: true`.
+- Geometries that cannot be measured return `supported: false`; the rest of the file is still processed.
+- `total_area_sq_m` and `total_length_m` cover the whole file.
+
+### 10. Run the tests (optional)
+
+```bash
+pytest
+```
+
+### 11. Troubleshooting
+
+- **`400` error:** the file is not a `.kml` or `.zip`.
+- **`422` error:** the file could not be read. The response shows the reason.
+- **`404` error:** the id is wrong, or `geo.db` was deleted.
+- **`uvicorn` or `pytest` not found:** the virtual environment is not active. Run the activate command again.
+- **Port 8000 is busy:** use `uvicorn app.main:app --port 8001`.
+- **`pip install` fails on a very new Python version:** use Python 3.12 or 3.13.
+
+### 12. Stop the project
+
+- Press `Ctrl+C` in the terminal, then run `deactivate` to leave the virtual environment.
+- To delete all stored data, delete the `geo.db` file.
+
+
 ## API
 
 ### Upload a file
